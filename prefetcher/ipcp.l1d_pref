@@ -19,6 +19,10 @@ Biswabandan Panda - biswap@cse.iitk.ac.in
 #define CS_TYPE 2                                           // constant stride
 #define CPLX_TYPE 3                                         // complex stride
 #define NL_TYPE 4                                           // next line
+#define PREFETCH_DEGREE 3                                   // intial prefetch degree
+#define THRESHOLD 7                                         // maximum prefetch degree
+#define AC_HIGH 0.75                                        // higher threshold
+#define AC_LOW 0.40                                         // lower threshold
 
 // #define SIG_DEBUG_PRINT
 #ifdef SIG_DEBUG_PRINT
@@ -39,6 +43,9 @@ class IP_TABLE_L1 {
     uint16_t str_dir;                                       // stream direction
     uint16_t str_valid;                                     // stream valid
     uint16_t str_strength;                                  // stream strength
+    int degree;                                             // prefetch degree
+    int useful;                                             // useful prefetches for this ip
+    int useless;                                            // useless prefetches for this ip
 
     IP_TABLE_L1 () {
         ip_tag = 0;
@@ -51,6 +58,9 @@ class IP_TABLE_L1 {
         str_dir = 0;
         str_valid = 0;
         str_strength = 0;
+        degree = PREFETCH_DEGREE;
+        useful = 0;
+        useless = 0;
     };
 };
 
@@ -174,6 +184,43 @@ int update_conf(int stride, int pred_stride, int conf){
 return conf;
 }
 
+/*************************throttle prefetch based on accuracy******************/
+
+void l1d_prefetch_throttle(int index,int cpu){
+    if(trackers_l1[cpu][index].useful+trackers_l1[cpu][index].useless >4){
+        float accuracy = (1.0*trackers_l1[cpu][index].useful)/(trackers_l1[cpu][index].useful+trackers_l1[cpu][index].useless);
+        if(accuracy >= AC_HIGH){ // INCREASE PREFETCH_DEGREE TO INCREASE TIMELINESS
+            trackers_l1[cpu][index].degree++;
+        }
+        if(accuracy < AC_HIGH && accuracy >=AC_LOW){ // IDEAL CASE
+            trackers_l1[cpu][index].degree;  
+        }
+        if(accuracy < AC_LOW){ // DECREASE PREFETCH_DEGREE TO SAVE BANDWIDTH
+            trackers_l1[cpu][index].degree--; 
+        }
+        if(trackers_l1[cpu][index].degree<=0) {
+            trackers_l1[cpu][index].degree = 1;
+        }
+        if(trackers_l1[cpu][index].degree>THRESHOLD){
+            trackers_l1[cpu][index].degree = THRESHOLD;
+        }
+    }
+}
+
+void CACHE::l1d_prefetch_update(uint64_t ip,int type){
+    int index = ip & ((1 << NUM_IP_INDEX_BITS)-1);
+    uint16_t ip_tag = (ip >> NUM_IP_INDEX_BITS) & ((1 << NUM_IP_TAG_BITS)-1);
+    if(trackers_l1[cpu][index].ip_tag == ip_tag){  // existing IP
+            if(type==0){ // UPDATE USEFUL 
+                trackers_l1[cpu][index].useful++;
+            }
+            if(type==1){ // UPDATE USELESS 
+                trackers_l1[cpu][index].useless++;
+            }
+            l1d_prefetch_throttle(index,cpu); // CALL PREFETCH_THROTTLE TO CHANGE THE PREFETCH_DEGREE
+    }
+}
+
 void CACHE::l1d_prefetcher_initialize() 
 {
 
@@ -191,14 +238,6 @@ void CACHE::l1d_prefetcher_operate(uint64_t addr, uint64_t ip, uint8_t cache_hit
     int num_prefs = 0;
     uint32_t metadata=0;
     uint16_t ip_tag = (ip >> NUM_IP_INDEX_BITS) & ((1 << NUM_IP_TAG_BITS)-1);
-
-if(NUM_CPUS == 1){
-    prefetch_degree = 3;
-    spec_nl_threshold = 15; 
-} else {                                    // tightening the degree and MPKC constraints for multi-core
-    prefetch_degree = 2;
-    spec_nl_threshold = 5;
-}
 
 // update miss counter
 if(cache_hit == 0)
@@ -286,7 +325,15 @@ signature = update_sig_l1(last_signature, stride);
 trackers_l1[cpu][index].signature = signature;
 
 // check GHB for stream IP
-check_for_stream_l1(index, cl_addr, cpu);           
+check_for_stream_l1(index, cl_addr, cpu);    
+
+if(NUM_CPUS == 1){
+    prefetch_degree = trackers_l1[cpu][index].degree;
+    spec_nl_threshold = 15; 
+} else {                                    // tightening the degree and MPKC constraints for multi-core
+    prefetch_degree = 2;
+    spec_nl_threshold = 5;
+}
 
 SIG_DP(
 cout << ip << ", " << cache_hit << ", " << cl_addr << ", " << addr << ", " << stride << "; ";
