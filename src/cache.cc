@@ -616,10 +616,10 @@ void CACHE::handle_read()
                 // update prefetch stats and reset prefetch bit
                 if (block[set][way].prefetch) {
                   if(cache_type==IS_L1D){ // UPDATE THE USEFUL COUNTER OF THE IP IN THE IP TRACKER L1D
-                      l1d_prefetch_update(RQ.entry[index].ip,0);
+                      //l1d_prefetch_update(RQ.entry[index].ip,0);
                     }
                   if(cache_type==IS_L2C){ // UPDATE THE USEFUL COUNTER OF THE IP IN THE IP TRACKER L1D
-                      l2c_prefetch_update(RQ.entry[index].ip,0);
+                      //l2c_prefetch_update(RQ.entry[index].ip,0);
                     }
                     pf_useful++;
                     block[set][way].prefetch = 0;
@@ -1094,10 +1094,10 @@ void CACHE::fill_cache(uint32_t set, uint32_t way, PACKET *packet)
 #endif
     if (block[set][way].prefetch && (block[set][way].used == 0)){
       if(cache_type==IS_L1D){ // UPDATE THE USELESS COUNTER OF THE IP IN THE IP TRACKER L1D
-        l1d_prefetch_update(packet->ip,1);
+        //l1d_prefetch_update(packet->ip,1);
       }
       if(cache_type==IS_L2C){ // UPDATE THE USELESS COUNTER OF THE IP IN THE IP TRACKER L1D
-        l2c_prefetch_update(packet->ip,1);
+        //l2c_prefetch_update(packet->ip,1);
       }
         pf_useless++;
     }
@@ -1157,7 +1157,9 @@ int CACHE::check_hit(PACKET *packet)
             break;
         }
     }
-
+    if(warmup_complete[packet->cpu] && packet->is_data){ 
+        //cout << packet->ip << "\t" << packet->address <<endl ;
+    }
     return match_way;
 }
 
