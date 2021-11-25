@@ -10,12 +10,12 @@ Off-chip DRAM Size: 4096 MB Channels: 1 Width: 64-bit Data Rate: 3200 MT/s
 
 CPU 0 runs ./lpf-traces//620.omnetpp_s-874B.champsimtrace.xz
 CPU 0 Bimodal branch predictor
-Heartbeat CPU 0 instructions: 10000001 cycles: 5583513 heartbeat IPC: 1.79099 cumulative IPC: 1.79099 (Simulation time: 0 hr 0 min 44 sec) 
+Heartbeat CPU 0 instructions: 10000001 cycles: 5583513 heartbeat IPC: 1.79099 cumulative IPC: 1.79099 (Simulation time: 0 hr 0 min 36 sec) 
 
-Warmup complete CPU 0 instructions: 10000001 cycles: 5583513 (Simulation time: 0 hr 0 min 44 sec) 
+Warmup complete CPU 0 instructions: 10000001 cycles: 5583513 (Simulation time: 0 hr 0 min 36 sec) 
 
-Heartbeat CPU 0 instructions: 20000000 cycles: 34802260 heartbeat IPC: 0.342246 cumulative IPC: 0.342246 (Simulation time: 0 hr 1 min 24 sec) 
-Finished CPU 0 instructions: 10000003 cycles: 29218748 cumulative IPC: 0.342246 (Simulation time: 0 hr 1 min 24 sec) 
+Heartbeat CPU 0 instructions: 20000000 cycles: 34802260 heartbeat IPC: 0.342246 cumulative IPC: 0.342246 (Simulation time: 0 hr 1 min 16 sec) 
+Finished CPU 0 instructions: 10000003 cycles: 29218748 cumulative IPC: 0.342246 (Simulation time: 0 hr 1 min 16 sec) 
 
 ChampSim completed all CPUs
 

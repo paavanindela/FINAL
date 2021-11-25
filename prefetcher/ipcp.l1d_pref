@@ -243,6 +243,12 @@ void CACHE::l1d_prefetcher_operate(uint64_t addr, uint64_t ip, uint8_t cache_hit
 if(cache_hit == 0)
     num_misses[cpu] += 1;
 
+if(NUM_CPUS == 1){
+    spec_nl_threshold = 15; 
+} else {                                    // tightening the degree and MPKC constraints for multi-core
+    spec_nl_threshold = 5;
+}
+
 // update spec nl bit when num misses crosses certain threshold
 if(num_misses[cpu] == 256){
     mpkc[cpu] = ((float) num_misses[cpu]/(current_core_cycle[cpu]-prev_cpu_cycle[cpu]))*1000;
@@ -329,10 +335,8 @@ check_for_stream_l1(index, cl_addr, cpu);
 
 if(NUM_CPUS == 1){
     prefetch_degree = trackers_l1[cpu][index].degree;
-    spec_nl_threshold = 15; 
 } else {                                    // tightening the degree and MPKC constraints for multi-core
     prefetch_degree = 2;
-    spec_nl_threshold = 5;
 }
 
 SIG_DP(
