@@ -4,3 +4,4 @@
 620.omnetpp_s-874B.champsimtrace.xz
 654.roms_s-1613B.champsimtrace.xz
 657.xz_s-2302B.champsimtrace.xz
+641.leela_s-1083B.champsimtrace.xz
